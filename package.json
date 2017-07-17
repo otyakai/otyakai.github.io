@@ -1,0 +1,30 @@
+{
+  "name": "otyakai.github.io",
+  "version": "1.0.0",
+  "description": "otyakai website",
+  "main": "index.js",
+  "scripts": {
+    "build": "gulp build",
+    "deploy": "npm run build && gh-pages -d dist",
+    "clean": "rm -rf dist/*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/otyakai/otyakai.github.io.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/otyakai/otyakai.github.io/issues"
+  },
+  "homepage": "https://github.com/otyakai/otyakai.github.io#readme",
+  "devDependencies": {
+    "gh-pages": "^1.0.0",
+    "gulp": "^3.9.1",
+    "gulp-cli": "^1.3.0",
+    "gulp-less": "^3.3.2",
+    "gulp-pug": "^3.3.0",
+    "less": "^2.7.2",
+    "pug": "^2.0.0-rc.2"
+  }
+}
