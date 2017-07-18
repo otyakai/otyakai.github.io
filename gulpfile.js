@@ -1,18 +1,25 @@
 const gulp = require("gulp");
 const browserSync = require("browser-sync");
+
 const pug = require("gulp-pug");
-const less = require("gulp-less");
 const layout = require("gulp-layout");
-const markdown = require("gulp-markdown")
+const markdown = require("gulp-markdown");
+const highlight = require("highlight.js");
+
+const less = require("gulp-less");
 
 const pugOptions = {
   pretty: false
 };
 
+const markedOptions = {
+  highlight: (code) => `<div class="highlight">${highlight.highlightAuto(code).value}</div>`
+}
+
 const lessOptions = {}
 
 
-gulp.task("watch", () => {
+gulp.task("watch", ["build"], () => {
   browserSync({
     server: {
       baseDir: "./dist"
@@ -20,8 +27,8 @@ gulp.task("watch", () => {
   })
   gulp.watch([
     "src/**/*.pug",
+    "src/**/*.md",
     "src/**/*.less",
-    "src/**/*.md"
   ], ["build", "reload"]);
 });
 
@@ -32,8 +39,8 @@ gulp.task("reload", ["build"], () => {
 
 gulp.task("build", [
   "build:pug",
+  "build:markdown",
   "build:less",
-  "build:markdown"
 ]);
 
 gulp.task(
@@ -44,18 +51,18 @@ gulp.task(
 );
 
 gulp.task(
-  "build:less",
-  () => gulp.src(["src/**/[^_]*.less"])
-        .pipe(less(lessOptions))
+  "build:markdown",
+  () => gulp.src(["src/**/*.md"])
+        .pipe(markdown(markedOptions))
+        .pipe(layout({
+          layout: "src/_md-template.pug",
+        }))
         .pipe(gulp.dest("dist/"))
 );
 
 gulp.task(
-  "build:markdown",
-  () => gulp.src(["src/**/*.md"])
-        .pipe(markdown())
-        .pipe(layout({
-          layout: "src/_md-template.pug",
-        }))
+  "build:less",
+  () => gulp.src(["src/**/[^_]*.less"])
+        .pipe(less(lessOptions))
         .pipe(gulp.dest("dist/"))
 );
