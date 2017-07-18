@@ -1,5 +1,7 @@
 const gulp = require("gulp");
 const browserSync = require("browser-sync");
+const map = require("map-stream");
+const source = require("vinyl-source-stream");
 
 const pug = require("gulp-pug");
 const layout = require("gulp-layout");
@@ -9,6 +11,9 @@ const highlight = require("highlight.js");
 const less = require("gulp-less");
 const postcss = require("gulp-postcss");
 const cssnext = require("postcss-cssnext");
+
+const browserify = require("browserify");
+const babelify = require("babelify");
 
 const pugOptions = {
   pretty: false
@@ -24,6 +29,20 @@ const cssnextOptions = {
   browsers: "> 1% in JP" // 日本でシェア1%以上
 }
 
+const browserifyOptions = {
+  debug: true
+}
+
+const babelOptions = {
+  presets: [
+    ["env", {
+      targets: {
+        browsers: "> 1% in JP"
+      }
+    }]
+  ]
+}
+
 gulp.task("watch", ["build"], () => {
   browserSync({
     server: {
@@ -34,6 +53,7 @@ gulp.task("watch", ["build"], () => {
     "src/**/*.pug",
     "src/**/*.md",
     "src/**/*.less",
+    "src/**/*.js"
   ], ["build", "reload"]);
 });
 
@@ -46,6 +66,7 @@ gulp.task("build", [
   "build:pug",
   "build:markdown",
   "build:less",
+  "build:js"
 ]);
 
 gulp.task(
@@ -74,3 +95,17 @@ gulp.task(
         ]))
         .pipe(gulp.dest("dist/"))
 );
+
+gulp.task("build:js", () => {
+  const processor = (file) => {
+    browserify(file.path, browserifyOptions)
+      .transform(babelify, babelOptions)
+      .bundle()
+      .on("error", (err) => console.error(`Error: ${err.message}`))
+      .pipe(source(file.path.replace(file.base, "")))
+      .pipe(gulp.dest("dist/"));
+  }
+
+  return gulp.src(["src/**/[^_]*.js"])
+          .pipe(map(a => processor(a)))
+});
