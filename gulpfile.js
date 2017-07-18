@@ -7,6 +7,8 @@ const markdown = require("gulp-markdown");
 const highlight = require("highlight.js");
 
 const less = require("gulp-less");
+const postcss = require("gulp-postcss");
+const cssnext = require("postcss-cssnext");
 
 const pugOptions = {
   pretty: false
@@ -18,6 +20,9 @@ const markedOptions = {
 
 const lessOptions = {}
 
+const cssnextOptions = {
+  browsers: "> 1% in JP" // 日本でシェア1%以上
+}
 
 gulp.task("watch", ["build"], () => {
   browserSync({
@@ -64,5 +69,8 @@ gulp.task(
   "build:less",
   () => gulp.src(["src/**/[^_]*.less"])
         .pipe(less(lessOptions))
+        .pipe(postcss([
+          cssnext(cssnextOptions)
+        ]))
         .pipe(gulp.dest("dist/"))
 );
