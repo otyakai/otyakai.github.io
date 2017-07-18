@@ -11,12 +11,15 @@ build/%.html: src/%.md src/_layout.pug src/_md-template.pug
 	$(NODEPATH)/marked $< -o $@.temp
 	$(NODEPATH)/pug -O "{contents:require('fs').readFileSync('$@.temp')}" -p src/_md-template.pug < src/_md-template.pug > $@
 	rm $@.temp
+
 css: $(CSS_FILES)
 build/%.css: src/%.less
 	$(NODEPATH)/lessc $< $@
+
 js: $(JS_FILES)
 build/%.js: src/%.js
 	$(NODEPATH)/babel $< > $@
+
 clean:
 	rm -rf build/*
 	touch build/.gitkeep
