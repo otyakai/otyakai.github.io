@@ -37,6 +37,8 @@
     "map-stream": "^0.0.7",
     "postcss-cssnext": "^3.0.2",
     "pug": "^2.0.0-rc.2",
-    "vinyl-source-stream": "^1.1.0"
+    "vinyl-source-stream": "^1.1.0",
+    "babel": "^6.23.0",
+    "babel-cli": "^6.24.1"
   }
 }
