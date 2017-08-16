@@ -1,32 +1,32 @@
-const gulp = require("gulp");
-const browserSync = require("browser-sync");
-const map = require("map-stream");
-const source = require("vinyl-source-stream");
+const gulp = require('gulp')
+const browserSync = require('browser-sync')
+const map = require('map-stream')
+const source = require('vinyl-source-stream')
 
-const pug = require("gulp-pug");
-const layout = require("gulp-layout");
-const markdown = require("gulp-markdown");
-const highlight = require("highlight.js");
+const pug = require('gulp-pug')
+const layout = require('gulp-layout')
+const markdown = require('gulp-markdown')
+const highlight = require('highlight.js')
 
-const less = require("gulp-less");
-const postcss = require("gulp-postcss");
-const cssnext = require("postcss-cssnext");
+const less = require('gulp-less')
+const postcss = require('gulp-postcss')
+const cssnext = require('postcss-cssnext')
 
-const browserify = require("browserify");
-const babelify = require("babelify");
+const browserify = require('browserify')
+const babelify = require('babelify')
 
 const pugOptions = {
   pretty: false
-};
+}
 
 const markedOptions = {
-  highlight: (code) => `<div class="highlight">${highlight.highlightAuto(code).value}</div>`
+  highlight: (code) => highlight.highlightAuto(code).value
 }
 
 const lessOptions = {}
 
 const cssnextOptions = {
-  browsers: "> 1% in JP" // 日本でシェア1%以上
+  browsers: '> 1% in JP' // 日本でシェア1%以上
 }
 
 const browserifyOptions = {
@@ -35,77 +35,78 @@ const browserifyOptions = {
 
 const babelOptions = {
   presets: [
-    ["env", {
+    ['env', {
       targets: {
-        browsers: "> 1% in JP"
+        browsers: '> 1% in JP'
       }
     }]
   ]
 }
 
-gulp.task("watch", ["build"], () => {
-  browserSync({
-    server: {
-      baseDir: "./dist"
-    }
-  })
-  gulp.watch([
-    "src/**/*.pug",
-    "src/**/*.md",
-    "src/**/*.less",
-    "src/**/*.js"
-  ], ["build", "reload"]);
-});
+gulp.task('build:pug',
+  async () => gulp.src(['src/**/[^_]*.pug'])
+              .pipe(pug(pugOptions))
+              .pipe(gulp.dest('dist/'))
+)
 
-gulp.task("reload", ["build"], () => {
-  console.log("build complete")
-  browserSync.reload();
-});
+gulp.task('build:markdown',
+  async () => gulp.src(['src/**/*.md'])
+              .pipe(markdown(markedOptions))
+              .pipe(layout({
+                layout: 'src/_md-template.pug',
+              }))
+              .pipe(gulp.dest('dist/'))
+)
 
-gulp.task("build", [
-  "build:pug",
-  "build:markdown",
-  "build:less",
-  "build:js"
-]);
+gulp.task('build:less',
+  async () => gulp.src(['src/**/[^_]*.less'])
+              .pipe(less(lessOptions))
+              .pipe(postcss([
+                cssnext(cssnextOptions)
+              ]))
+              .pipe(gulp.dest('dist/'))
+)
 
-gulp.task(
-  "build:pug",
-  () => gulp.src(["src/**/[^_]*.pug"])
-        .pipe(pug(pugOptions))
-        .pipe(gulp.dest("dist/"))
-);
-
-gulp.task(
-  "build:markdown",
-  () => gulp.src(["src/**/*.md"])
-        .pipe(markdown(markedOptions))
-        .pipe(layout({
-          layout: "src/_md-template.pug",
-        }))
-        .pipe(gulp.dest("dist/"))
-);
-
-gulp.task(
-  "build:less",
-  () => gulp.src(["src/**/[^_]*.less"])
-        .pipe(less(lessOptions))
-        .pipe(postcss([
-          cssnext(cssnextOptions)
-        ]))
-        .pipe(gulp.dest("dist/"))
-);
-
-gulp.task("build:js", () => {
+gulp.task('build:js', async () => {
   const processor = (file) => {
     browserify(file.path, browserifyOptions)
       .transform(babelify, babelOptions)
       .bundle()
-      .on("error", (err) => console.error(`Error: ${err.message}`))
-      .pipe(source(file.path.replace(file.base, "")))
-      .pipe(gulp.dest("dist/"));
+      .on('error', (err) => console.error(`Error: ${err.message}`))
+      .pipe(source(file.path.replace(file.base, '')))
+      .pipe(gulp.dest('dist/'))
   }
 
-  return gulp.src(["src/**/[^_]*.js"])
+  return gulp.src(['src/**/[^_]*.js'])
           .pipe(map(a => processor(a)))
-});
+})
+
+gulp.task('build', gulp.parallel(
+  'build:pug',
+  'build:markdown',
+  'build:less',
+  'build:js'
+))
+
+gulp.task('watch',
+  gulp.series('build', async () => {
+    browserSync({
+      server: {
+        baseDir: './dist'
+      }
+    })
+
+    gulp.watch([
+      'src/**/*.pug',
+      'src/**/*.md',
+      'src/**/*.less',
+      'src/**/*.js'
+    ], gulp.series(
+      'build',
+      async () => {
+        console.log('build complete')
+        browserSync.reload()
+      }
+    ))
+  })
+)
