@@ -53,6 +53,7 @@ gulp.task('build:markdown',
   async () => gulp.src(['src/**/*.md'])
               .pipe(markdown(markedOptions))
               .pipe(layout({
+                title: 'markdown',
                 layout: 'src/_md-template.pug',
               }))
               .pipe(gulp.dest('dist/'))
